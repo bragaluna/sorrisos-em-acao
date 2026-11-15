@@ -1,0 +1,19 @@
+# Segredos e configuração local
+.env
+!.env.example
+*credentials*.json
+service-account*.json
+
+# Dados locais do n8n
+.n8n/
+n8n_data/
+
+# Exports ainda não sanitizados e dados reais
+exports_brutos/
+dados_reais/
+*.xlsx
+
+# Sistema
+__pycache__/
+.DS_Store
+Thumbs.db

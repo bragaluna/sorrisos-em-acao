@@ -1,0 +1,16 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    # Exposto apenas na máquina local. Para receber webhooks, use um túnel ou proxy com HTTPS.
+    ports:
+      - "127.0.0.1:5678:5678"
+    env_file: .env
+    environment:
+      # Necessário para as expressões {{ $env.VAR }} usadas no workflow
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:

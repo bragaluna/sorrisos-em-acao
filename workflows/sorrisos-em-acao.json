@@ -1,0 +1,364 @@
+{
+  "name": "Sorrisos em Ação — registro de doações",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.text.message }}",
+        "options": {
+          "systemMessage": "Você é um assistente especialista em triagem e organização de dados para uma Ação Social. \nSua função é analisar mensagens de texto enviados em um grupo de WhatsApp e extrair as informações sobre as doações recebidas.\n\n### REGRAS DE CLASSIFICAÇÃO:\n\n1. CATEGORIAS PERMITIDAS (Escolha estritamente uma destas):\n   - \"Financeiro\": Para doações em dinheiro, PIX, transferências ou comprovantes bancários.\n   - \"Brinquedos\": Jogos, bonecas, carrinhos, bolas, etc.\n   - \"Roupas\": Roupas, calçados, agasalhos, acessórios de vestuário.\n   - \"Alimentos\": Cestas básicas, alimentos não perecíveis, leites, marmitas.\n   - \"Higiene\": Sabonetes, fraldas, creme dental, absorventes, itens de limpeza.\n\n2. GÊNERO / PÚBLICO PERMITIDO (Escolha estritamente um destes):\n   - \"Masculino\"\n   - \"Feminino\"\n   - \"Unissex\" (Padrão para alimentos, grande parte dos brinquedos/itens de higiene sem distinção)\n   - \"N/A\" (Padrão para doações da categoria \"Financeiro\")\n\n3. FAIXA ETÁRIA PERMITIDA (Escolha estritamente uma destas):\n   - \"Bebê (0-2 anos)\"\n   - \"Infantil (3-12 anos)\"\n   - \"Juvenil (13-17 anos)\"\n   - \"Adulto\"\n   - \"Geral / N/A\" (Padrão para doações financeiras, alimentos ou itens de higiene geral)\n\n4. REGRAS PARA COMPROVANTES DE PAGAMENTO (PIX / Transferências):\n   - Categoria: Sempre \"Financeiro\".\n   - Valor (R$): Extraia o valor exato no formato numérico (ex: 150.00).\n   - Qtd. Itens: Defina como 0.\n   - Doador: Nome do pagador/remetente indicado no comprovante. Se não identificado, use \"Anônimo\".\n\n5. REGRAS PARA MENSAGENS MÚLTIPLAS:\n   - Se a mensagem contiver mais de um tipo de item (ex: \"Recebi 3 brinquedos infantis e 2 agasalhos masculinos\"), gere um objeto separado na lista para cada tipo de item.\n\n---\n\n### FORMATO DE SAÍDA OBRIGATÓRIO (JSON):\nSua resposta DEVE ser estritamente um array JSON válido contendo um ou mais objetos com a seguinte estrutura:\n\n[\n  {\n    \"doador\": \"Nome do doador (ou 'Anônimo' / 'Não informado')\",\n    \"categoria\": \"Financeiro | Brinquedos | Roupas | Alimentos | Higiene\",\n    \"valor_reais\": 0.00,\n    \"qtd_itens\": 0,\n    \"genero\": \"Masculino | Feminino | Unissex | N/A\",\n    \"faixa_etaria\": \"Bebê (0-2 anos) | Infantil (3-12 anos) | Juvenil (13-17 anos) | Adulto | Geral / N/A\",\n    \"descricao\": \"Breve resumo descritivo do que foi doado\",\n    \"status\": \"Recebido\"\n  }\n]\n\nNão inclua textos explicativos, saudações ou markdown fora do bloco JSON.\n"
+        }
+      },
+      "id": "8ac12019-4495-4150-92e0-da27cb7c08b1",
+      "name": "Extrair doações (Gemini)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1248,
+        304
+      ],
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "content": "## Entrada Whatsapp",
+        "height": 208,
+        "width": 224,
+        "color": 7
+      },
+      "id": "fdee5820-e117-42e5-884d-3113dce51e1d",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Formatação JSON com IA",
+        "height": 224,
+        "width": 288,
+        "color": 4
+      },
+      "id": "675080f0-1ae0-4467-b57d-54029df9076c",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1216,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Saída Google Sheets",
+        "height": 224,
+        "width": 256
+      },
+      "id": "64508997-d051-4b79-b57b-f64d3b3af6c4",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1760,
+        240
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Modelo de Chat",
+        "height": 208,
+        "width": 208,
+        "color": 3
+      },
+      "id": "5522c5ad-b60f-471a-9926-cb75942dcd32",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        512
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1312,
+        576
+      ],
+      "id": "e2208220-27b5-4183-a599-8cb424565434",
+      "name": "Modelo Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "name": "<googlePalmApi>"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $env.GOOGLE_SHEET_TAB }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Doador": "={{ $json.doador }}",
+            "Data": "={{ $now.format('dd/MM/yyyy') }}",
+            "Categoria": "={{ $json.categoria }}",
+            "Valor_R$": "={{ $json.valor_reais }}",
+            "Qtd_itens": "={{ $json.qtd_itens }}",
+            "Genero": "={{ $json.genero }}",
+            "Faixa_Etaria": "={{ $json.faixa_etaria }}",
+            "Descricao": "={{ $json.descricao }}",
+            "Status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Doador",
+              "displayName": "Doador",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Data",
+              "displayName": "Data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Valor_R$",
+              "displayName": "Valor_R$",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Qtd_itens",
+              "displayName": "Qtd_itens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Genero",
+              "displayName": "Genero",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Faixa_Etaria",
+              "displayName": "Faixa_Etaria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Descricao",
+              "displayName": "Descricao",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3ee34650-3693-478d-9432-9a60e72bedae",
+      "name": "Registrar na planilha",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        1824,
+        304
+      ],
+      "typeVersion": 4.6,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "<googleSheetsOAuth2Api>"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        816,
+        304
+      ],
+      "id": "87adc7e3-5ca6-4f0d-9784-225df9c68b70",
+      "name": "Webhook WhatsApp"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ea8be0b4-b220-4b00-8839-ba113549bacc",
+              "leftValue": "={{ $json.body.phone }}",
+              "rightValue": "={{ $env.WHATSAPP_GROUP_ID }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        304
+      ],
+      "id": "47248ca4-3990-45c5-9471-55f292f4bcd0",
+      "name": "Filtrar grupo da campanha"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Converte a resposta do modelo em itens para a planilha.\n// Só passam itens com categoria, gênero e faixa etária dentro das listas permitidas;\n// textos são limitados e têm caracteres iniciais de fórmula removidos (=, +, -, @).\n\nconst CATEGORIAS = ['Financeiro', 'Brinquedos', 'Roupas', 'Alimentos', 'Higiene'];\nconst GENEROS = ['Masculino', 'Feminino', 'Unissex', 'N/A'];\nconst FAIXAS = ['Bebê (0-2 anos)', 'Infantil (3-12 anos)', 'Juvenil (13-17 anos)', 'Adulto', 'Geral / N/A'];\n\nconst entrada = $input.first().json;\nconst resposta = String(entrada.output ?? entrada.text ?? '');\nconst conteudo = resposta.replace(/```(?:json)?/g, '').trim();\n\nlet itens;\ntry {\n  itens = JSON.parse(conteudo);\n} catch (erro) {\n  throw new Error('A resposta do modelo não é um JSON válido.');\n}\nif (!Array.isArray(itens)) itens = [itens];\n\nconst texto = (valor, limite) =>\n  String(valor ?? '').replace(/^[=+\\-@\\s]+/, '').slice(0, limite).trim();\n\nconst numero = (valor) => {\n  const n = Number(valor);\n  return Number.isFinite(n) && n >= 0 ? n : 0;\n};\n\nconst validos = itens.filter((item) =>\n  item &&\n  CATEGORIAS.includes(item.categoria) &&\n  GENEROS.includes(item.genero) &&\n  FAIXAS.includes(item.faixa_etaria)\n);\n\nreturn validos.map((item) => ({\n  json: {\n    doador: texto(item.doador, 80) || 'Não informado',\n    categoria: item.categoria,\n    valor_reais: numero(item.valor_reais),\n    qtd_itens: Math.floor(numero(item.qtd_itens)),\n    genero: item.genero,\n    faixa_etaria: item.faixa_etaria,\n    descricao: texto(item.descricao, 300),\n    status: 'Recebido',\n  },\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1584,
+        304
+      ],
+      "id": "ae0f1251-0eb1-4f36-b221-5a2458d6b83b",
+      "name": "Validar e normalizar"
+    }
+  ],
+  "connections": {
+    "Extrair doações (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Validar e normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modelo Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extrair doações (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Filtrar grupo da campanha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar grupo da campanha": {
+      "main": [
+        [
+          {
+            "node": "Extrair doações (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar e normalizar": {
+      "main": [
+        [
+          {
+            "node": "Registrar na planilha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  }
+}
